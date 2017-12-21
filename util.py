@@ -5,8 +5,8 @@ import tensorflow as tf
 import numpy as np
 
 FLAGS = None
-TRAINING = 'boardState_training.csv'
-TESTING = "boardState_testing.csv"
+TRAINING = 'policy_training.csv'
+TESTING = "policy_testing.csv"
 
 class DataSet():
     def __init__(self, images, labels):
@@ -42,13 +42,18 @@ def read_data_csv(filename):
         for line in inf:
             currentLine = line.strip().split(",")
             currentLine = list(map(str2int, currentLine))
-            features.append(currentLine[0:129])
-            labels.append(currentLine[129:147])
+            features.append(currentLine[0:144])
+            labels.append(currentLine[144:208])
     return features, labels
 
 def convertOutput(output):
     height = output[0:8]
     width = output[8:16]
     player = output[-1]
-    return height.index(1), width.index(1), player
+    return tf.argmax(height), tf.argmax(width), player
+
+def compareOutputs(out1, out2):
+    return tf.logical_and(tf.logical_and(tf.equal(convertOutput(out1)[0], convertOutput(out2)[0]), \
+                                         tf.equal(convertOutput(out1)[1], convertOutput(out2)[1])), \
+                          tf.equal(convertOutput(out1)[2], convertOutput(out2)[2]))
 

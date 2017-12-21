@@ -13,8 +13,8 @@ import numpy as np
 import util
 
 FLAGS = None
-TRAINING = 'boardState_training.csv'
-TESTING = "boardState_testing.csv"
+TRAINING = 'policy_training.csv'
+TESTING = "policy_testing.csv"
 
 def main():
     testing_data, testing_target = util.read_data_csv(TESTING)
@@ -27,7 +27,7 @@ def main():
         x = graph.get_tensor_by_name("x:0")
         y_ = graph.get_tensor_by_name("y_:0")
         keep_prob = graph.get_tensor_by_name("dropout/keep_prob:0")
-        feed_dict = {x:testing_data, y_:testing_target, keep_prob:1.0}
+        feed_dict = {x:[testing_data[0]], y_:[testing_target[0]], keep_prob:1.0}
         predict_op = graph.get_tensor_by_name("predict_op:0")
         print("accuracy is %g" % sess.run(predict_op, feed_dict))     
 

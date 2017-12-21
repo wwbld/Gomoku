@@ -299,31 +299,30 @@ class Game(object):
 
         ai = MCTS(self.board, [p1, p2], self.n_in_row, self.time, self.max_actions)
         ai1 = MCTS(self.board, [p2,p1], self.n_in_row, self.time, self.max_actions)
-        #human = Human(self.board, p2)
         players = {}
         players[p1] = ai
         players[p2] = ai1
-        #players[p2] = human
         turn = [p1, p2]
         shuffle(turn)
         self.graphic(self.board, ai1, ai)
-        #self.graphic(self.board, human, ai)
+        globalStates = []
         while(1):
             p = turn.pop(0)
             turn.append(p)
             player_in_turn = players[p]
             move = player_in_turn.get_action()
-            ##
-            #self.printBoard(self.board, ai1, ai)
+             
+            tempState = self.collectBoard(self.board, p, ai1, ai)
+            globalStates.append(tempState)
             self.printMove(self.board, move, p, ai1, ai)
-            ##
+     
             self.board.update(p, move)
-            self.graphic(self.board, ai1, ai)
-            #self.graphic(self.board, human, ai)
+            #self.graphic(self.board, ai1, ai)
             end, winner = self.game_end(ai)
             if end:
                 if winner != -1:
-                    print("Game end. Winner is", players[winner])
+                    print("Game end. Winner is", winner)
+                    self.printWin(globalStates, winner-1)
                 break
 
     def init_player(self):
@@ -368,6 +367,28 @@ class Game(object):
                     print('_'.center(8), end='')
             print('\r\n\r\n')
     
+    def collectBoard(self, board, p, human, ai):
+        width = board.width
+        height = board.height
+        human_count = 0
+        ai_count = 0
+        state = []
+        for i in range(height-1, -1, -1):
+            for j in range(width):
+                loc = i * width + j
+                if board.states[loc] == human.player:
+                    human_count += 1
+                    state.append(1)
+                    state.append(0)
+                elif board.states[loc] == ai.player:
+                    ai_count += 1
+                    state.append(0)
+                    state.append(1)
+                else:
+                    state.append(0)
+                    state.append(0)
+        return state
+
     def printBoard(self, board, p, human, ai):
         width = board.width
         height = board.height
@@ -389,41 +410,52 @@ class Game(object):
                     state.append(0)
                     state.append(0)
         state.append(p-1)
+        state.append(0)
+        ## padding
+        for _ in range(14):
+            state.append(0)
         return state
+
+    def printWin(self, globalStates, winner):
+        for i in range(len(globalStates)):
+            tempArr = globalStates[i]
+            tempArr.append(winner)
+            self.write2file_value(tempArr)
+            #print("value is {0}".format(tempArr))
+
+    def write2file_value(self, tempArr):
+        myFile = open("value_training.csv", 'a+')
+        with myFile:
+            writer = csv.writer(myFile)
+            writer.writerow(tempArr)
+        self.printRows_value()
 
     def printMove(self, board, move, player, human, ai):
         moveState = self.printBoard(board, player, human, ai)
-        state1 = [0] * 8
-        state2 = [0] * 8
-        height = move // board.width
-        width = move % board.width
-        state1[height] = 1
-        state2[width] = 1
-        for i in range(8):
-            moveState.append(state1[i])
-        for i in range(8):
-            moveState.append(state2[i])
-        if player == human.player:
-            moveState.append(0)
-        else:
-            moveState.append(1)
-        self.write2file(moveState)
-        print("move is {0}".format(moveState))
-        print("state length is {0}".format(len(moveState)))
+        state = [0] * 64
+        state[move] = 1
+        for i in range(64):
+            moveState.append(state[i])
+        self.write2file_policy(moveState)
+        #print("move is {0}".format(moveState))
+        #print("state length is {0}".format(len(moveState)))
         
-    def write2file(self, moveState):
-        myFile = open("boardState_testing.csv", 'a+')
+    def write2file_policy(self, moveState):
+        myFile = open("policy_training.csv", 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(moveState)
-        self.printRows()
+        self.printRows_policy()
     
-    def printRows(self):
-        print("{0} rows in file".format(sum(1 for row in csv.reader(open("boardState_testing.csv")))))
+    def printRows_policy(self):
+        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("policy_training.csv")))))
+
+    def printRows_value(self):
+        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("value_training.csv")))))
 
 def run():
     n = 5
-    for _ in range(5):
+    for _ in range(1):
         try:
             board = Board(width=8, height=8, n_in_row=n)
             game = Game(board, n_in_row=n, time=1)
