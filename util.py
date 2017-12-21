@@ -5,8 +5,8 @@ import tensorflow as tf
 import numpy as np
 
 FLAGS = None
-TRAINING = 'policy_training.csv'
-TESTING = "policy_testing.csv"
+TRAINING = 'data/policy_training.csv'
+TESTING = "data/policy_testing.csv"
 
 class DataSet():
     def __init__(self, images, labels):

@@ -92,13 +92,13 @@ class MCTS(object):
             self.run_simulation(board_copy, play_turn_copy)
             simulations += 1
 
-        print("total simulations=", simulations)
+        #print("total simulations=", simulations)
 
         move = self.select_one_move()
         location = self.board.move_to_location(move)
-        print('Maximum depth searched:', self.max_depth)
+        #print('Maximum depth searched:', self.max_depth)
 
-        print("AI move: %d,%d\n" % (location[0], location[1]))
+        #print("AI move: %d,%d\n" % (location[0], location[1]))
 
         return move
 
@@ -304,7 +304,7 @@ class Game(object):
         players[p2] = ai1
         turn = [p1, p2]
         shuffle(turn)
-        self.graphic(self.board, ai1, ai)
+        #self.graphic(self.board, ai1, ai)
         globalStates = []
         while(1):
             p = turn.pop(0)
@@ -426,13 +426,6 @@ class Game(object):
             self.write2file_value(tempArr)
             #print("value is {0}".format(tempArr))
 
-    def write2file_value(self, tempArr):
-        myFile = open("value_testing.csv", 'a+')
-        with myFile:
-            writer = csv.writer(myFile)
-            writer.writerow(tempArr)
-        self.printRows_value()
-
     def printMove(self, board, move, player, human, ai):
         moveState = self.printBoard(board, player, human, ai)
         state = [0] * 64
@@ -444,17 +437,24 @@ class Game(object):
         #print("state length is {0}".format(len(moveState)))
         
     def write2file_policy(self, moveState):
-        myFile = open("policy_testing.csv", 'a+')
+        myFile = open("data/policy_testing.csv", 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(moveState)
-        self.printRows_policy()
+        #self.printRows_policy()
     
     def printRows_policy(self):
-        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("policy_testing.csv")))))
+        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("data/policy_testing.csv")))))
+
+    def write2file_value(self, tempArr):
+        myFile = open("data/value_testing.csv", 'a+')
+        with myFile:
+            writer = csv.writer(myFile)
+            writer.writerow(tempArr)
+        #self.printRows_value()    
 
     def printRows_value(self):
-        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("value_testing.csv")))))
+        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("data/value_testing.csv")))))
 
 def run():
     n = 5
