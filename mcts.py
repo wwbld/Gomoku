@@ -421,12 +421,13 @@ class Game(object):
             tempArr = globalStates[i]
             winnerState = [0]*2
             winnerState[winner] = 1
-            tempArr.append(winnerState)
+            for j in winnerState:
+                tempArr.append(winnerState[j])
             self.write2file_value(tempArr)
             #print("value is {0}".format(tempArr))
 
     def write2file_value(self, tempArr):
-        myFile = open("value_training.csv", 'a+')
+        myFile = open("value_testing.csv", 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(tempArr)
@@ -443,21 +444,21 @@ class Game(object):
         #print("state length is {0}".format(len(moveState)))
         
     def write2file_policy(self, moveState):
-        myFile = open("policy_training.csv", 'a+')
+        myFile = open("policy_testing.csv", 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(moveState)
         self.printRows_policy()
     
     def printRows_policy(self):
-        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("policy_training.csv")))))
+        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("policy_testing.csv")))))
 
     def printRows_value(self):
-        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("value_training.csv")))))
+        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("value_testing.csv")))))
 
 def run():
     n = 5
-    for _ in range(10):
+    for _ in range(5):
         try:
             board = Board(width=8, height=8, n_in_row=n)
             game = Game(board, n_in_row=n, time=1)
