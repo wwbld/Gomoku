@@ -17,7 +17,7 @@ TRAINING = 'policy_training.csv'
 TESTING = "policy_testing.csv"
 
 def main():
-    testing_data, testing_target = util.read_data_csv(TESTING)
+    testing_data, testing_target = util.read_policy_csv(TESTING)
     test = util.DataSet(testing_data, testing_target)
 
     with tf.Session() as sess:

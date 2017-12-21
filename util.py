@@ -34,7 +34,7 @@ class DataSet():
 def str2int(s):
     return int(s)
 
-def read_data_csv(filename):
+def read_policy_csv(filename):
     features = []
     labels = []
     with open(filename) as inf:
@@ -46,14 +46,14 @@ def read_data_csv(filename):
             labels.append(currentLine[144:208])
     return features, labels
 
-def convertOutput(output):
-    height = output[0:8]
-    width = output[8:16]
-    player = output[-1]
-    return tf.argmax(height), tf.argmax(width), player
-
-def compareOutputs(out1, out2):
-    return tf.logical_and(tf.logical_and(tf.equal(convertOutput(out1)[0], convertOutput(out2)[0]), \
-                                         tf.equal(convertOutput(out1)[1], convertOutput(out2)[1])), \
-                          tf.equal(convertOutput(out1)[2], convertOutput(out2)[2]))
-
+def read_value_csv(filename):
+    features = []
+    labels = []
+    with open(filename) as inf:
+        next(inf)
+        for line in inf:
+            currentLine = line.strip().split(",")
+            currentLine = list(map(str2int, currentLine))
+            features.append(currentLine[0:128])
+            labels.append(currentLine[128:130])
+    return features, labels

@@ -419,7 +419,9 @@ class Game(object):
     def printWin(self, globalStates, winner):
         for i in range(len(globalStates)):
             tempArr = globalStates[i]
-            tempArr.append(winner)
+            winnerState = [0]*2
+            winnerState[winner] = 1
+            tempArr.append(winnerState)
             self.write2file_value(tempArr)
             #print("value is {0}".format(tempArr))
 
@@ -455,7 +457,7 @@ class Game(object):
 
 def run():
     n = 5
-    for _ in range(1):
+    for _ in range(10):
         try:
             board = Board(width=8, height=8, n_in_row=n)
             game = Game(board, n_in_row=n, time=1)

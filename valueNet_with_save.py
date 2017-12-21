@@ -12,12 +12,13 @@ import tensorflow as tf
 import numpy as np
 
 FLAGS = None
-TRAINING = 'policy_training.csv'
-TESTING = "policy_testing.csv"
+TRAINING = 'value_training.csv'
+TESTING = "value_testing.csv"
 
 import util 
 
 def deepnn(x):
+    '''
     with tf.name_scope('reshape'):
         x_board = tf.reshape(x, [-1, 12, 12, 1])
 
@@ -36,30 +37,29 @@ def deepnn(x):
   
     with tf.name_scope('pool2'):
         h_pool2 = max_pool_2x2(h_conv2)
-
+    '''
     with tf.name_scope('fc1'):
-        W_fc1 = weight_variable([3*3*64, 1024])
-        b_fc1 = bias_variable([1024])
-
-        h_pool2_flat = tf.reshape(h_pool2, [-1, 3*3*64])
-        h_fc1 = tf.nn.softmax(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+        W_fc1 = weight_variable([128, 64])
+        b_fc1 = bias_variable([64])
+        h_fc1 = tf.nn.softmax(tf.matmul(x, W_fc1) + b_fc1)
 
     with tf.name_scope('dropout'):
         keep_prob = tf.placeholder(tf.float32, name="keep_prob")
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     with tf.name_scope('fc2'):
-        W_fc2 = weight_variable([1024, 64])
-        b_fc2 = bias_variable([64])
+        W_fc2 = weight_variable([64, 2])
+        b_fc2 = bias_variable([2])
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
     return y_conv, keep_prob
-
+'''
 def conv2d(x, W):
     return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
 
 def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+'''
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -70,14 +70,14 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 def main():
-    training_data, training_target = util.read_data_csv(TRAINING)
-    testing_data, testing_target = util.read_data_csv(TESTING)
+    training_data, training_target = util.read_policy_csv(TRAINING)
+    testing_data, testing_target = util.read_policy_csv(TESTING)
 
     training = util.DataSet(training_data, training_target)
     test = util.DataSet(testing_data, testing_target)
    
-    x = tf.placeholder(tf.float32, [None, 144], name="x")
-    y_ = tf.placeholder(tf.float32, [None, 64], name="y_")
+    x = tf.placeholder(tf.float32, [None, 128], name="x")
+    y_ = tf.placeholder(tf.float32, [None, 2], name="y_")
 
     y_conv, keep_prob = deepnn(x)
 
@@ -110,7 +110,7 @@ def main():
         print('test accuracy %g' % accuracy.eval(feed_dict={
               x:test._images, y_:test._labels, keep_prob:1.0}))
  
-        saver.save(sess, "my_model")
+        saver.save(sess, "my_value_model")
 
 
 
