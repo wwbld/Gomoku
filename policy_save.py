@@ -49,9 +49,14 @@ def deepnn(x):
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     with tf.name_scope('fc2'):
-        W_fc2 = weight_variable([1024, 64])
-        b_fc2 = bias_variable([64])
-        y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+        W_fc2 = weight_variable([1024, 128])
+        b_fc2 = bias_variable([128])
+        h_fc2 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+
+    with tf.name_scope('fc3'):
+        W_fc3 = weight_variable([128, 64])
+        b_fc3 = bias_variable([64])
+        y_conv = tf.matmul(h_fc2, W_fc3) + b_fc3
 
     return y_conv, keep_prob
 

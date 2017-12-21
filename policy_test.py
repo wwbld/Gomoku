@@ -26,11 +26,14 @@ def main():
         graph = tf.get_default_graph()
         x = graph.get_tensor_by_name("x:0")
         y_ = graph.get_tensor_by_name("y_:0")
+        output = graph.get_tensor_by_name("accuracy/output:0")
+        target = graph.get_tensor_by_name("accuracy/target:0")
         keep_prob = graph.get_tensor_by_name("dropout/keep_prob:0")
         feed_dict = {x:[testing_data[0]], y_:[testing_target[0]], keep_prob:1.0}
         predict_op = graph.get_tensor_by_name("predict_op:0")
-        print("accuracy is %g" % sess.run(predict_op, feed_dict))     
-
+        print("accuracy is %g" % sess.run(predict_op, feed_dict))
+        print("output is {0}".format(sess.run([output], feed_dict)))     
+        print("target is {0}".format(sess.run([target], feed_dict)))
 
 
 if __name__ == '__main__':

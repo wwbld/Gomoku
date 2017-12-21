@@ -98,8 +98,8 @@ def main():
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(5000):
-            batch = training.next_batch(20)
+        for i in range(20000):
+            batch = training.next_batch(100)
             if i % 100 == 0:
                 training_accuracy = accuracy.eval(feed_dict={x:batch[0], y_:batch[1], keep_prob:1.0})
                 print('step %d, training accuracy %g' % (i, training_accuracy))
