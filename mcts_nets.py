@@ -1,13 +1,3 @@
-"""
-author: arrti
-github: https://github.com/arrti
-blog:   http://www.cnblogs.com/xmwd
-
-This implement of MC and UCT was not completely right,
-but it can work, please see README.
-Welcome to discuss with me.
-""" 
-
 import copy
 import time
 import csv
@@ -20,6 +10,11 @@ import tempfile
 import tensorflow as tf
 import numpy as np
 import util
+
+POLICY_TRAINING = 'data/policy_training_v1.csv'
+POLYCY_TESTING = 'data/policy_testing_v1.csv'
+VALUE_TRAINING = 'data/value_training_v1.csv'
+VALUE_TESTING = 'data/value_testing_v1.csv'
 
 class Board(object):
     """
@@ -74,7 +69,8 @@ class MCTS(object):
     AI player, use Monte Carlo Tree Search with UCB
     """
 
-    def __init__(self, board, play_turn, n_in_row=5, time=5, max_actions=1000):
+    def __init__(self, board, policy_graph, value_graph, \
+                 play_turn, n_in_row=5, time=5, max_actions=1000):
         self.board = board
         self.play_turn = play_turn
         self.calculation_time = float(time)
@@ -84,6 +80,9 @@ class MCTS(object):
         self.player = play_turn[0] # AI is first at now
         self.confident = 1.96
         self.max_depth = 1
+
+        self.policy_graph = policy_graph
+        self.value_graph = value_graph
 
     def get_action(self):
         if len(self.board.availables) == 1:
@@ -134,6 +133,7 @@ class MCTS(object):
                      sqrt(self.confident * log_total / plays[(player, move)]), move)
                     for move in availables)   # UCB
             else:
+                '''                
                 # a simple strategy
                 # prefer to choose the nearer moves without statistics,
                 # and then the farthers.
@@ -150,6 +150,13 @@ class MCTS(object):
                         if not plays.get((player, move)):
                             peripherals.append(move)
                     move = choice(peripherals)
+                '''
+                policy_input = self.state2policy(board, player)
+                move = self.policy_graph.get_predict(policy_input)
+                if self.checkMove(move, board) != True:
+                    print("checkMove == False!!!!!!!!!!")
+                
+            print("move is {0}".format(move))
 
             board.update(player, move)
 
@@ -179,6 +186,32 @@ class MCTS(object):
             if player == winner:
                 wins[(player, move)] += 1 # only winner's moves
 
+    def state2value(self, board):
+        width = board.width
+        height = board.height
+        state = []
+        for i in range(height-1, -1, -1):
+            for j in range(width):
+                loc = i * width + j
+                if board.states[loc] == 2:
+                    state.append(1)
+                    state.append(0)
+                elif board.states[loc] == 1:
+                    state.append(0)
+                    state.append(1)
+                else:
+                    state.append(0)
+                    state.append(0)
+        return state
+
+    def state2policy(self, board, p):
+        state = self.state2value(board)
+        state.append(p-1)
+        state.append(0)
+        for _ in range(14):
+            state.append(0)
+        return state
+
     def get_player(self, players):
         p = players.pop(0)
         players.append(p)
@@ -192,6 +225,11 @@ class MCTS(object):
             for move in self.board.availables)
 
         return move
+
+    def checkMove(self, temp, board):
+        if temp not in board.availables:
+            return False
+        return True
 
     def adjacent_moves(self, board, player, plays):
         """
@@ -293,8 +331,10 @@ class Game(object):
     game server
     """
 
-    def __init__(self, board, **kwargs):
+    def __init__(self, board, policy_graph, value_graph, **kwargs):
         self.board = board
+        self.policy_graph = policy_graph
+        self.value_graph = value_graph
         self.player = [1, 2] # player1 and player2
         self.n_in_row = int(kwargs.get('n_in_row', 5))
         self.time = float(kwargs.get('time', 5))
@@ -304,14 +344,16 @@ class Game(object):
         p1, p2 = self.init_player()
         self.board.init_board()
 
-        ai = MCTS(self.board, [p1, p2], self.n_in_row, self.time, self.max_actions)
-        ai1 = MCTS(self.board, [p2,p1], self.n_in_row, self.time, self.max_actions)
+        ai = MCTS(self.board, self.policy_graph, self.value_graph, \
+                  [p1, p2], self.n_in_row, self.time, self.max_actions)
+        human = MCTS(self.board, self.policy_graph, self.value_graph, \
+                   [p2,p1], self.n_in_row, self.time, self.max_actions)
         players = {}
         players[p1] = ai
-        players[p2] = ai1
+        players[p2] = human
         turn = [p1, p2]
         shuffle(turn)
-        self.graphic(self.board, ai1, ai)
+        self.graphic(self.board, human, ai)
         globalStates = []
         while(1):
             p = turn.pop(0)
@@ -319,12 +361,12 @@ class Game(object):
             player_in_turn = players[p]
             move = player_in_turn.get_action()
              
-            #tempState = self.collectBoard(self.board, p, ai1, ai)
+            #tempState = self.collectBoard(self.board, p, human, ai)
             #globalStates.append(tempState)
-            #self.printMove(self.board, move, p, ai1, ai)
+            #self.printMove(self.board, move, p, human, ai)
      
             self.board.update(p, move)
-            self.graphic(self.board, ai1, ai)
+            self.graphic(self.board, human, ai)
             end, winner = self.game_end(ai)
             if end:
                 if winner != -1:
@@ -444,32 +486,33 @@ class Game(object):
         #print("state length is {0}".format(len(moveState)))
         
     def write2file_policy(self, moveState):
-        myFile = open("data/policy_training.csv", 'a+')
+        myFile = open(POLICY_TRAINING, 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(moveState)
         #self.printRows_policy()
     
     def printRows_policy(self):
-        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open("data/policy_training.csv")))))
+        print("{0} rows in policy file".format(sum(1 for row in csv.reader(open(POLICY_TRAINING)))))
 
     def write2file_value(self, tempArr):
-        myFile = open("data/value_training.csv", 'a+')
+        myFile = open(VALUE_TRAINING, 'a+')
         with myFile:
             writer = csv.writer(myFile)
             writer.writerow(tempArr)
         #self.printRows_value()    
 
     def printRows_value(self):
-        print("{0} rows in value file".format(sum(1 for row in csv.reader(open("data/value_training.csv")))))
+        print("{0} rows in value file".format(sum(1 for row in csv.reader(open(VALUE_TESTING)))))
 
 def run():
     n = 5
-    
+    policy_graph = util.ImportGraph('policy_model/', 'policy_model')
+    value_graph = util.ImportGraph('value_model/', 'value_model')
     for _ in range(1):
         try:
             board = Board(width=8, height=8, n_in_row=n)
-            game = Game(board, n_in_row=n, time=1)
+            game = Game(board, policy_graph, value_graph, n_in_row=n, time=1)
             game.start()
         except KeyboardInterrupt:
             print('\n\rquit')

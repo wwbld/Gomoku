@@ -16,11 +16,11 @@ def main():
     policy_graph = util.ImportGraph('policy_model/', 'policy_model')
     value_graph = util.ImportGraph('value_model/', 'value_model') 
    
-    policy_graph.get_accuracy(policy_testing_data, policy_testing_target)
-    value_graph.get_accuracy(value_testing_data, value_testing_target)  
+    print("accuracy is {0}".format(policy_graph.get_accuracy(policy_testing_data, policy_testing_target)))
+    print("accuracy is {0}".format(value_graph.get_accuracy(value_testing_data, value_testing_target)))  
 
-    policy_graph.get_predict(policy_testing_data[0])
-    value_graph.get_predict(value_testing_data[0])
+    print("output is {0}".format(policy_graph.get_predict(policy_testing_data[0])))
+    print("output is {0}".format(value_graph.get_predict(value_testing_data[0])))
 
 if __name__ == '__main__':
     main()

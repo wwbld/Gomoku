@@ -47,11 +47,13 @@ class ImportGraph():
  
     def get_accuracy(self, data, target):
         feed_dict = {self.x:data, self.y_:target, self.keep_prob:1.0}
-        print("accuracy is %g" % self.sess.run(self.predict_op, feed_dict))
+        #print("accuracy is %g" % self.sess.run(self.predict_op, feed_dict))
+        return self.sess.run(self.predict_op, feed_dict)
 
     def get_predict(self, data):
         feed_dict = {self.x:[data], self.keep_prob:1.0}
-        print("output is {0}".format(self.sess.run([self.output], feed_dict)[0][0]))
+        #print("output is {0}".format(self.sess.run([self.output], feed_dict)[0][0]))
+        return self.sess.run([self.output], feed_dict)[0][0]
 
 
 def str2int(s):

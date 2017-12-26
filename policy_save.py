@@ -26,8 +26,18 @@ def deepnn(x):
         b_conv1 = bias_variable([32])
         h_conv1 = tf.nn.relu(conv2d(x_board, W_conv1) + b_conv1)   
 
+    with tf.name_scope('conv1_5'):
+        W_conv1_5 = weight_variable([5,5,32,32])
+        b_conv1_5 = bias_variable([32])
+        h_conv1_5 = tf.nn.relu(conv2d(h_conv1, W_conv1_5) + b_conv1_5)   
+   
+    with tf.name_scope('conv1_6'):
+        W_conv1_6 = weight_variable([5,5,32,32])
+        b_conv1_6 = bias_variable([32])
+        h_conv1_6 = tf.nn.relu(conv2d(h_conv1_5, W_conv1_5) + b_conv1_5) 
+
     with tf.name_scope('pool1'):
-        h_pool1 = max_pool_2x2(h_conv1)
+        h_pool1 = max_pool_2x2(h_conv1_6)
 
     with tf.name_scope('conv2'):
         W_conv2 = weight_variable([5, 5, 32, 64])
@@ -74,7 +84,7 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
-def main():
+def main(unused_argv):
     training_data, training_target = util.read_policy_csv(TRAINING)
     testing_data, testing_target = util.read_policy_csv(TESTING)
 
@@ -103,8 +113,8 @@ def main():
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(10000):
-            batch = training.next_batch(20)
+        for i in range(20000):
+            batch = training.next_batch(100)
             if i % 100 == 0:
                 training_accuracy = accuracy.eval(feed_dict={x:batch[0], y_:batch[1], keep_prob:1.0})
                 print('step %d, training accuracy %g' % (i, training_accuracy))
@@ -121,6 +131,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    tf.app.run()
 
 
